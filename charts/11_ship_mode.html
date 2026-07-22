@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+  #chart { width: 100vw; height: 100vh; }
+</style></head><body>
+<div id="chart"></div>
+<script>
+  var data = [{"hole": 0.5, "hovertemplate": "%{label}: $%{value:,.0f} (%{percent})<extra></extra>", "labels": ["Second Class", "Standard Class", "First Class", "Same Day"], "marker": {"colors": ["#003366", "#0066CC", "#00A86B", "#FF6B35"]}, "textfont": {"size": 12}, "textinfo": "label+percent", "values": [459193.5693999998, 1358215.7429999826, 351428.4229000002, 128363.125], "type": "pie"}];
+  var layout = {"title": {"text": "Sales Distribution by Shipping Mode", "x": 0, "font": {"size": 18, "color": "#003366"}}, "height": 450, "showlegend": true, "font": {"family": "Segoe UI, Arial, sans-serif", "color": "#212529"}, "margin": {"l": 60, "r": 30, "t": 60, "b": 50}, "xaxis": {"title": {"font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "yaxis": {"title": {"font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "legend": {"font": {"color": "#6C757D"}}, "hoverlabel": {"font": {"family": "Segoe UI, Arial, sans-serif"}}, "plot_bgcolor": "#FFFFFF", "paper_bgcolor": "#FFFFFF"};
+  Plotly.newPlot('chart', data, layout, {{responsive: true}});
+</script></body></html>
