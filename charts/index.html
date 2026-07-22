@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superstore Analysis — Chart Gallery</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', -apple-system, Arial, sans-serif;
+    background: #F8F9FA;
+    color: #212529;
+  }
+  .header {
+    background: linear-gradient(135deg, #003366 0%, #0066CC 100%);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .header h1 { font-size: 2rem; margin-bottom: 8px; }
+  .header p { opacity: 0.85; font-size: 1.05rem; }
+  .header a { color: #FFC107; }
+  .container { max-width: 1300px; margin: 0 auto; padding: 30px 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(580px, 1fr)); gap: 24px; }
+  .card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
+  .card-title {
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #003366;
+    border-bottom: 1px solid #E5E7EB;
+    background: #FAFBFC;
+  }
+  .card-chart { width: 100%; height: 400px; border: none; }
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: #6C757D;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .card-chart { height: 320px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Superstore 经营分析 — 图表画廊</h1>
+  <p>12 张 Plotly 交互图表 | McKinsey 风格配色</p>
+  <p style="margin-top:8px;">
+    <a href="dashboard.html" style="background:var(--accent);color:white;padding:8px 20px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">📋 查看 Power BI 仪表板</a>
+    &nbsp;
+    <a href="https://github.com/yaoyaojiahan/superstore-analysis">← GitHub 仓库</a>
+  </p>
+</div>
+
+<div class="container">
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-title">🌳 01 — Sales Distribution by Category (Treemap)</div>
+      <iframe class="card-chart" src="01_sales_treemap.html" title="Sales Treemap"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💧 02 — Profit Contribution by Category (Waterfall)</div>
+      <iframe class="card-chart" src="02_profit_waterfall.html" title="Profit Waterfall"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 03 — Category Performance Comparison</div>
+      <iframe class="card-chart" src="03_category_comparison.html" title="Category Comparison"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📦 04 — Sales by Sub-Category (Horizontal Bar)</div>
+      <iframe class="card-chart" src="04_subcategory_sales.html" title="Sub-Category Sales"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💰 05 — Profit by Sub-Category (Horizontal Bar)</div>
+      <iframe class="card-chart" src="05_subcategory_profit.html" title="Sub-Category Profit"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗺️ 06 — Regional Performance (Sales + Margin)</div>
+      <iframe class="card-chart" src="06_regional_performance.html" title="Regional Performance"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🍩 07 — Customer Segment Distribution (Donut)</div>
+      <iframe class="card-chart" src="07_segment_donut.html" title="Segment Donut"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ 08 — Profit Margin by Discount Level (KEY FINDING)</div>
+      <iframe class="card-chart" src="08_discount_impact.html" title="Discount Impact"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📐 09 — Pareto Analysis (80/20 Rule)</div>
+      <iframe class="card-chart" src="09_pareto.html" title="Pareto Chart"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚠️ 10 — Loss-Making Sub-Categories</div>
+      <iframe class="card-chart" src="10_loss_makers.html" title="Loss-Makers"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚚 11 — Sales by Shipping Mode (Donut)</div>
+      <iframe class="card-chart" src="11_ship_mode.html" title="Ship Mode"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 12 — Discount Rate vs Profit (Scatter)</div>
+      <iframe class="card-chart" src="12_discount_vs_profit.html" title="Discount vs Profit"></iframe>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <p>Built with ❤️ by <strong>Yao Jiahan</strong> · Applied Statistics, B.Sc. · 2026</p>
+  <p>AI + Business Analyst Career Path</p>
+</div>
+
+</body>
+</html>

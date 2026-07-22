@@ -27,3 +27,4 @@ output/
 
 # Data backup
 data/*.bak
+.zcode/

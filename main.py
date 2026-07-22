@@ -48,8 +48,15 @@ def fmt_dollar(val: float) -> str:
 
 def export_chart(fig, name: str):
     """Export a Plotly figure as HTML for portfolio embedding."""
+    import plotly.io as pio
+    pio.json.config.default_engine = 'json'  # Fix for Python 3.14 / orjson compat
+    
     path = os.path.join(IMAGES_DIR, f'{name}.html')
-    fig.write_html(path, include_plotlyjs='cdn', full_html=True)
+    html = fig.to_html(include_plotlyjs='cdn', full_html=True)
+    # Fix Plotly template bug: {{responsive: true}} → {responsive: true}
+    html = html.replace('{{responsive: true}}', '{responsive: true}')
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(html)
     print(f"    ✓ Exported: {path}")
 
 
@@ -146,7 +153,7 @@ def generate_all_charts(eda: dict, data) -> dict:
             labels=cats_labels,
             parents=['All Products'] * len(cats_labels),
             values=cats_values,
-            title='Sales Distribution by Category'
+            title='品类销售分布'
         )
 
     # 2. Profit by Category (Waterfall)
@@ -155,7 +162,7 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['02_profit_waterfall'] = create_profit_waterfall(
             labels=list(profit_by_cat.keys()),
             values=list(profit_by_cat.values()),
-            title='Profit Contribution by Category'
+            title='品类利润贡献'
         )
 
     # 3. Category Margin Comparison (Grouped Bar)
@@ -168,8 +175,8 @@ def generate_all_charts(eda: dict, data) -> dict:
             series={
                 'Sales ($)': [sales_by_cat.get(c, 0) for c in cats],
             },
-            title='Category Performance: Sales vs Profit',
-            yaxis_title='Amount ($)'
+            title='品类表现：销售额 vs 利润率',
+            yaxis_title='金额 ($)'
         )
 
     # 4. Sales by Sub-Category (Horizontal Bar)
@@ -181,8 +188,8 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['04_subcategory_sales'] = create_hbar(
             labels=sub_labels,
             values=sub_values,
-            title='Sales by Sub-Category',
-            xaxis_title='Total Sales ($)'
+            title='子品类销售额排名',
+            xaxis_title='总销售额 ($)'
         )
 
     # 5. Profit by Sub-Category (Horizontal Bar)
@@ -192,8 +199,8 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['05_subcategory_profit'] = create_hbar(
             labels=[s for s, _ in sorted_profits],
             values=[v for _, v in sorted_profits],
-            title='Profit by Sub-Category',
-            xaxis_title='Total Profit ($)',
+            title='子品类利润排名',
+            xaxis_title='总利润 ($)',
             color=COLORS['accent']
         )
 
@@ -204,7 +211,7 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['06_regional_performance'] = create_region_chart(
             region_sales=sales_region,
             region_profit=profit_region,
-            title='Regional Performance: Sales & Profit Margin'
+            title='区域表现：销售额 + 利润率'
         )
 
     # 7. Segment Donut Chart
@@ -213,7 +220,7 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['07_segment_donut'] = create_donut(
             labels=list(sales_seg.keys()),
             values=list(sales_seg.values()),
-            title='Sales Distribution by Customer Segment'
+            title='客户细分销售分布'
         )
 
     # 8. Discount Impact
@@ -224,8 +231,8 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['08_discount_impact'] = create_vbar(
             labels=bin_names,
             values=margins,
-            title='Profit Margin by Discount Level',
-            yaxis_title='Profit Margin (%)',
+            title='折扣力度 vs 利润率',
+            yaxis_title='利润率 (%)',
             color=COLORS['danger']
         )
 
@@ -234,7 +241,7 @@ def generate_all_charts(eda: dict, data) -> dict:
     if pareto_data:
         charts['09_pareto'] = create_pareto(
             data=pareto_data,
-            title='Pareto Analysis: Sales Concentration (80/20 Rule)'
+            title='帕累托分析：销售集中度（80/20 法则）'
         )
 
     # 10. Loss-Making Sub-Categories
@@ -244,8 +251,8 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['10_loss_makers'] = create_hbar(
             labels=[s for s, _ in sorted_loss],
             values=[v for _, v in sorted_loss],
-            title='Loss-Making Sub-Categories (Bottom Performers)',
-            xaxis_title='Total Loss ($)',
+            title='亏损子品类（表现最差）',
+            xaxis_title='总亏损 ($)',
             color=COLORS['danger']
         )
 
@@ -255,7 +262,7 @@ def generate_all_charts(eda: dict, data) -> dict:
         charts['11_ship_mode'] = create_donut(
             labels=list(ship_sales.keys()),
             values=list(ship_sales.values()),
-            title='Sales Distribution by Shipping Mode'
+            title='物流方式销售分布'
         )
 
     # 12. Scatter: Discount vs Profit
@@ -272,9 +279,9 @@ def generate_all_charts(eda: dict, data) -> dict:
     charts['12_discount_vs_profit'] = create_scatter(
         x=d_sample,
         y=p_sample,
-        title='Discount Rate vs Profit (Each dot = one transaction)',
-        xaxis_title='Discount Rate',
-        yaxis_title='Profit ($)',
+        title='折扣率 vs 利润（每点 = 一笔交易）',
+        xaxis_title='折扣率',
+        yaxis_title='利润 ($)',
         color_values=d_sample,
         color_label='Discount',
         size_values=[max(3, min(20, abs(p) / 50)) for p in p_sample],

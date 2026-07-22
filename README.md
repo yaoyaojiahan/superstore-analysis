@@ -170,20 +170,25 @@ Total Losses:   -$156,131  (from 18.7% of transactions)
 
 ## 📊 Visualization Gallery
 
+> 🎨 **[View All 12 Interactive Charts →](https://yaoyaojiahan.github.io/superstore-analysis/charts/)**  
+> *GitHub Pages — click through to explore each chart with hover, zoom, and pan*
+
 All charts are generated with Plotly and follow a **McKinsey-inspired corporate color palette**:
 
-- `01_sales_treemap` — Category sales distribution
-- `02_profit_waterfall` — Profit breakdown by category
-- `03_category_comparison` — Sales vs Profit bar chart
-- `04_subcategory_sales` — Top sub-categories (horizontal bar)
-- `05_subcategory_profit` — Profit by sub-category
-- `06_regional_performance` — Dual-axis regional analysis
-- `07_segment_donut` — Customer segment breakdown
-- `08_discount_impact` — Margin erosion by discount level
-- `09_pareto` — 80/20 analysis (bar + cumulative line)
-- `10_loss_makers` — Bottom performers identification
-- `11_ship_mode` — Logistics analysis
-- `12_discount_vs_profit` — Scatter plot with color dimension
+| # | Chart | Type | Business Question |
+|---|-------|------|-------------------|
+| 01 | Sales by Category | Treemap | Where does revenue come from? |
+| 02 | Profit by Category | Waterfall | Which categories drive profit? |
+| 03 | Category Comparison | Grouped Bar | Sales vs Profit by category |
+| 04 | Sales by Sub-Category | Horizontal Bar | Top-selling product lines |
+| 05 | Profit by Sub-Category | Horizontal Bar | Most profitable product lines |
+| 06 | Regional Performance | Dual-Axis | Sales + Margin by region |
+| 07 | Customer Segment | Donut | Who are our customers? |
+| 08 | **Discount Impact** 🔴 | Bar | How discounts destroy margin |
+| 09 | Pareto (80/20) | Bar + Line | Product concentration |
+| 10 | Loss-Makers | Horizontal Bar | Which products lose money? |
+| 11 | Shipping Mode | Donut | Logistics breakdown |
+| 12 | Discount vs Profit | Scatter | Correlation analysis |
 
 ---
 
