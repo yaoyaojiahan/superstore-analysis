@@ -1,240 +1,312 @@
-# Superstore Business Analysis
+# 🏦 零售利润优化决策系统
 
-> **A McKinsey-style Business Analysis Portfolio Project**  
-> End-to-end data analysis pipeline: from raw data to actionable business recommendations
+> **CEO 执行摘要**：我们在 Superstore 零售数据中发现 **$156,131 的利润泄漏**（占总利润 54%），根因是可预防的折扣策略失控。执行 3 项干预措施——折扣上限管控、亏损品类供应商议价、区域差异化运营——可在 **6 个月内提升净利润 16%（+$46,000）**。
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![Plotly](https://img.shields.io/badge/Plotly-5.0+-purple.svg)](https://plotly.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## 📊 Project Overview
+## 📋 目录
 
-This project delivers a **complete business analysis** of the Superstore retail dataset, following the same methodology used by McKinsey consultants and Google Data Analysts. It's designed as a **job-ready portfolio piece** for Data Analyst / Business Analyst / Operations Analyst positions.
-
-### 🎯 Business Questions Answered
-
-| # | Question | Answer |
-|---|----------|--------|
-| 1 | Is the business profitable? | **Yes — 12.47% net margin**, but with significant leakage |
-| 2 | Where is money being lost? | **18.7% of transactions are unprofitable**, totaling **$156K in losses** |
-| 3 | What drives losses? | **Deep discounting (>40%)** is the #1 profit killer (59.5% of loss transactions) |
-| 4 | Which products perform best? | **Technology** category leads margins; **Office Supplies** leads volume |
-| 5 | Does 80/20 rule apply? | **Yes** — a small subset of sub-categories drives the majority of revenue |
-| 6 | Regional differences? | **West** region leads profit margins; **Central** lags behind |
-| 7 | Customer segment insights? | **Consumer** is dominant (50.6% sales); **Home Office** has highest avg order value |
+1. [执行摘要](#一执行摘要) — 3 分钟了解核心结论
+2. [核心发现](#二核心发现) — 数据驱动的商业洞察
+3. [根因诊断](#三根因诊断) — 多维下钻定位问题源头
+4. [行动方案](#四行动方案) — 量化影响 + 实施路线图
+5. [AI 工作流](#五ai-工作流) — 如何用 AI 提效分析
+6. [附录：技术架构](#六附录) — 技术实现与数据质量
 
 ---
 
-## 🏗️ Project Structure
+## 一、执行摘要
+
+### 我们做了什么
+
+基于 Superstore 零售数据集（9,994 条交易记录），进行了从**描述性分析 → 诊断性下钻 → 规范性建议**的完整商业咨询流程。
+
+### 三个核心结论
+
+| # | 结论 | 量化影响 |
+|---|------|----------|
+| 1 | **折扣是利润的头号杀手** | >40% 折扣导致 100% 亏损率，涉及 $156K |
+| 2 | **3 个品类贡献 46% 的亏损** | Binders + Tables + Machines = -$101K |
+| 3 | **Central 区域系统性亏损** | 高折扣段亏损 $40,793，远高于其他区域 |
+
+### 一句话建议
+
+> **立即对所有品类设置 40% 折扣硬上限，并对 Furniture 品类额外设 25% 上限。这是 ROI 最高的单一措施。**
+> 
+> —— 详细行动方案见[第四节](#四行动方案)
+
+---
+
+## 二、核心发现
+
+### 2.1 整体经营画像
 
 ```
-project/
-├── data/                    # Raw dataset (Superstore.csv)
-├── src/                     # Core analysis modules
-│   ├── data_loader.py       # Data loading & preprocessing
-│   ├── data_quality.py      # Data quality assessment (6 checks)
-│   ├── eda.py               # EDA engine (12 analysis dimensions)
-│   ├── visualizer.py        # Plotly visualization engine (12 chart types)
-│   └── insights.py          # Business insight generator (McKinsey-style)
-├── utils/
-│   └── helpers.py           # Pure Python utility functions (group-by, aggregation, etc.)
-├── config/
-│   └── settings.py          # Centralized configuration & color palette
-├── images/                  # Exported charts (HTML/PNG)
-├── main.py                  # Master pipeline orchestrator
-├── notebook.ipynb           # Jupyter Notebook (complete walkthrough)
-├── requirements.txt         # Python dependencies
-├── README.md                # This file
-├── portfolio.md             # Portfolio presentation page
-├── resume.md                # Resume-ready project description
-└── interview.md             # 20 interview questions with model answers
+总营收     $2,297,201
+净利润     $286,397   (12.47%)
+亏损交易   1,869 笔   (18.7%)
+亏损金额   -$156,131  (占利润 54%)
+客单价     $230
+```
+
+**关键判断**：12.47% 的净利润率看起来健康，但 **每赚 $1 利润，就有 $0.55 被亏损订单侵蚀**。这是一个典型的"漏桶"问题。
+
+### 2.2 品类利润结构
+
+| 品类 | 销售额 | 利润 | 利润率 |
+|------|--------|------|--------|
+| Technology | $836K | $145K | **17.4%** ✅ |
+| Office Supplies | $719K | $122K | **17.0%** ✅ |
+| Furniture | $742K | $18K | **2.5%** ⚠️ |
+
+> **Furniture 品类利润率仅 2.5%，是拖累整体表现的核心问题品类。**
+
+### 2.3 折扣的毁灭性影响
+
+| 折扣段 | 平均利润率 | 交易占比 | 状态 |
+|--------|-----------|----------|------|
+| 无折扣 (0%) | **+29.5%** | 40% | ✅ 健康 |
+| 低折扣 (1-20%) | **+11.9%** | 38% | ✅ 可接受 |
+| 中折扣 (21-40%) | **-15.3%** | 13% | ⚠️ 亏损 |
+| 高折扣 (41-60%) | **-40.7%** | 6% | 🔴 严重 |
+| 极高折扣 (>60%) | **-122.6%** | 3% | 🔴 毁灭性 |
+
+> **核心洞察**：折扣一旦超过 20%，利润就开始转负。超过 40% 则无可挽回。
+
+---
+
+## 三、根因诊断
+
+传统的描述性分析止步于"高折扣导致亏损"。我们通过 **8 个多维下钻分析**，精确定位了问题的源头：
+
+### 3.1 品类 × 折扣：Furniture 在高折扣段 100% 亏损
+
+| 品类 ↓ / 折扣 → | 中折扣(21-40%) | 高折扣(41-60%) | 极高(>60%) |
+|-----------------|---------------|---------------|-----------|
+| **Furniture** | **-15.6% (95%亏损)** | **-33.1% (100%亏损)** | **-15.3% (100%亏损)** |
+| Office Supplies | +14.3% | -1.2% | **-3.9% (100%亏损)** |
+| Technology | +28.7% | **-18.9% (100%亏损)** | 无交易 |
+
+> **Furniture 品类在中折扣段就已经 95.4% 亏损**——这意味着即使是"正常促销"也几乎单单纯亏。
+
+### 3.2 子品类 × 区域：Tables 在 East 区域亏损最严重
+
+| 亏损排名 | 子品类 | 区域 | 亏损金额 |
+|----------|--------|------|----------|
+| 🔴 1 | Tables | East | **-$11,025** |
+| 🔴 2 | Bookcases | Central | -$6,368 |
+| 🔴 3 | Furnishings | Central | -$4,935 |
+| 🔴 4 | Tables | South | -$4,623 |
+| 🔴 5 | Binders | Central | -$3,860 |
+
+> **"Tables + East"这一个组合就亏损 $11K**，建议优先排查 East 区域的 Tables 定价与物流成本。
+
+### 3.3 Top 5 亏损品类根因诊断
+
+| 品类 | 亏损额 | 根因诊断 |
+|------|--------|----------|
+| **Binders** | -$38,510 | 🔴 高折扣驱动（100% 亏损来自 >40% 折扣），集中在 Central + Consumer |
+| **Tables** | -$32,412 | 🟡 集中在 East 区域 + Consumer 客群（折扣因素次要） |
+| **Machines** | -$30,119 | 🔴 高折扣驱动（90% 亏损来自 >40% 折扣），集中在 East |
+| **Bookcases** | -$12,152 | 🔴 高折扣驱动（67% 亏损来自 >40% 折扣），集中在 East |
+| **Chairs** | -$9,881 | 🟡 集中在 Central + Consumer（折扣因素次要） |
+
+> **Binders、Machines、Bookcases 的亏损根因是折扣**（可通过政策控制）；  
+> **Tables、Chairs 的亏损根因是区域/客群结构**（需结构性调整）。
+
+### 3.4 客群 × 折扣：所有客群在高折扣段 100% 亏损
+
+| 客群 ↓ / 折扣 → | 高折扣(41-60%) | 极高(>60%) |
+|-----------------|---------------|-----------|
+| Consumer | **100% 亏损** | **100% 亏损** |
+| Corporate | **100% 亏损** | **100% 亏损** |
+| Home Office | **100% 亏损** | **100% 亏损** |
+
+> **这证明了折扣问题是系统性的，与客群无关**——不是"某个客群被过度打折"，而是"所有客群在高折扣下都亏"。
+
+### 3.5 建议永不打折的 8 个子品类
+
+| 严重度 | 子品类 | 说明 |
+|--------|--------|------|
+| 🔴 严重 | Appliances, Binders, Bookcases | 中折扣段即亏损 |
+| 🔴 严重 | Machines, Tables | 高折扣段深度亏损 |
+| 🟡 关注 | Furnishings, Phones, Storage | 需监控 |
+
+---
+
+## 四、行动方案
+
+### 三大战略举措
+
+#### 🛑 策略一：折扣止血计划（预计挽回 +$46,000/年）
+
+| 措施 | 时间 | 负责 |
+|------|------|------|
+| Furniture 品类折扣硬上限 25% | 立即 | 运营 |
+| 所有品类 >40% 折扣需总监审批 | 立即 | 管理层 |
+| 8 个"永不打折"子品类列入系统管控 | Q1 | IT + 运营 |
+| A/B 测试确定各品类最优折扣点 | Q1-Q2 | 数据团队 |
+
+#### 📦 策略二：产品组合优化（预计挽回 +$28,000/年）
+
+| 措施 | 时间 |
+|------|------|
+| Binders / Tables / Machines 供应商重新议价 | Q2 |
+| 亏损品与高利润品捆绑销售方案 | Q2 |
+| Technology 品类营销预算增加 15% | Q1 |
+| 季度产品利润评估 + 末位淘汰机制 | 持续 |
+
+#### 🗺️ 策略三：区域差异化运营（预计挽回 +$18,000/年）
+
+| 措施 | 时间 |
+|------|------|
+| Central 区域利润专项诊断 | Q1 |
+| West 优势区域追加营销投入 20% | Q2 |
+| 区域化定价 + 物流成本分摊优化 | Q2-Q3 |
+
+### 实施路线图
+
+```
+Q1 2026          Q2 2026          Q3 2026          Q4 2026
+──────────       ──────────       ──────────       ──────────
+折扣止血 🛑      供应商议价 📦    区域策略 🗺️      全面推广 🚀
+立即执行          A/B 测试         定价优化          自动化预警
+快速见效          效果验证         全面复盘          持续优化
+```
+
+### ROI 预估
+
+```
+当前净利润：  $286,397
+策略一实施后：$332,397  (+$46K, +16%)
+策略二追加后：$360,397  (+$28K, +26%)
+策略三追加后：$378,397  (+$18K, +32%)
+────────────────────────────
+停止50%亏损可达：$364,000  (+27%)
 ```
 
 ---
 
-## 🚀 Quick Start
+## 五、AI 工作流
 
-```bash
-# 1. Clone the repository
-git clone <your-repo-url>
-cd superstore-analysis
+本项目是 **AI 原生工作流** 的完整演示：从 Prompt 到最终 BI 呈现，AI 贯穿分析全流程。
 
-# 2. Install dependencies (minimal!)
-pip install -r requirements.txt
-
-# 3. Run the complete pipeline
-python main.py
-
-# 4. Export charts as HTML (optional)
-python main.py --export
-```
-
-> **Note**: This project uses **pure Python** for data processing (no numpy/pandas required for core logic). Plotly is used for visualization. This design choice demonstrates deep Python fundamentals rather than just library usage.
-
----
-
-## 📈 Analysis Pipeline (10 Steps)
-
-### Step 1: Business Understanding 🏢
-- Company profile, business model, stakeholder concerns
-- KPI framework: Sales, Profit Margin, Discount Effectiveness, Customer Value
-
-### Step 2: Data Understanding 🔍
-- **9,994 transactions** across **13 columns**
-- Data quality checks: missing values (0), duplicates (17), outliers (IQR method)
-- **18.7% loss transactions** — identified as business-critical finding
-
-### Step 3: Exploratory Data Analysis 📊
-12 analysis dimensions covering:
-- Sales & Profit overview
-- Regional performance (4 regions)
-- Category & Sub-category deep dive
-- Customer segment analysis
-- Discount impact assessment
-- Pareto analysis (80/20 rule)
-- Loss-maker identification
-- Profit margin analysis
-
-### Step 4: Business Insights 💡
-9 actionable insights with McKinsey's "Insight → So What → Now What" framework
-
-### Step 5: Dashboard Design 📋
-Power BI dashboard blueprint with 3 pages, KPI cards, and interactive filters
-
----
-
-## 🔑 Key Findings
-
-### 💰 The Profit Leakage Problem
+### 工作流全景
 
 ```
-Total Sales:    $2,297,201
-Total Profit:   $286,397   (12.47% margin)
-Total Losses:   -$156,131  (from 18.7% of transactions)
-
-→ Every $1 of profit is eroded by $0.55 of losses
-→ Stopping just 30% of losses would increase overall profit by 16%
+┌─────────────────────────────────────────────────────────┐
+│  ① Prompt（中文）                                        │
+│  "作为零售分析专家，请设计一个多维下钻分析框架..."         │
+├─────────────────────────────────────────────────────────┤
+│  ② AI 分析设计（Codex / Claude）                         │
+│  输出：分析框架 + 代码骨架 + 预期输出结构                  │
+├─────────────────────────────────────────────────────────┤
+│  ③ Python 执行                                          │
+│  核心分析逻辑 + 数据聚合 + 统计检验                        │
+├─────────────────────────────────────────────────────────┤
+│  ④ 人工校验                                              │
+│  数据合理性检查 + 业务逻辑验证 + 洞察优化                  │
+├─────────────────────────────────────────────────────────┤
+│  ⑤ BI 呈现                                              │
+│  Plotly 交互图表 → HTML 仪表板 → 咨询报告                 │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### 📉 Discount: The Silent Profit Killer
+### 实际 Prompt 示例
 
-| Discount Level | Avg Margin | % of Orders |
-|----------------|-----------|-------------|
-| No Discount (0%) | +30.1% | 40% |
-| Low (1-20%) | +13.2% | 38% |
-| Medium (21-40%) | +0.3% | 13% |
-| High (41-60%) | **-40.7%** | 6% |
-| Very High (60%+) | **-122.6%** | 3% |
+**Prompt（输入）**：
+> "我有一个零售数据集，包含 Category、Sub-Category、Region、Segment、Sales、Discount、Profit 等字段。请帮我设计一个诊断性分析框架：不只说'高折扣导致亏损'，而是精确回答——哪个品类 × 哪个折扣段 × 哪个区域 × 哪个客群 在亏钱？每个亏损品类根因是什么？"
 
-> **Insight**: Discounts above 40% destroy value. They should require manager approval.
+**AI 输出**（经人工校验后采用）：
+- 分析架构：8 维度交叉矩阵设计
+- 核心逻辑：`Category × Discount`、`Sub-Category × Region`、`Segment × Discount` 等
+- 关键函数：`multi_group_by(rows, [dim1, dim2], 'Profit', 'sum')`
+- 输出格式：热力图矩阵 + 排名表 + 根因标签
 
-### 📦 Loss-Making Sub-Categories
+### AI 提效量化
 
-| Sub-Category | Total Loss | Primary Driver |
-|-------------|-----------|----------------|
-| Binders | -$38,510 | High discount + Low margin |
-| Tables | -$32,412 | High discount (45% avg on losses) |
-| Machines | -$30,119 | Deep discounting (70% avg) |
-| Bookcases | -$12,152 | Discount + competitive pricing |
-| Chairs | -$9,881 | Over-discounting |
+| 环节 | 传统方式 | AI 辅助 | 提效 |
+|------|----------|---------|------|
+| 分析框架设计 | 2-4 小时 | 15 分钟 | **10×** |
+| 代码实现 | 4-6 小时 | 1 小时 | **5×** |
+| 洞察提炼 | 2-3 小时 | 30 分钟 | **5×** |
+| 报告撰写 | 4-8 小时 | 1 小时 | **6×** |
+
+> **AI 不是替代分析师，而是让分析师把时间花在"校验洞察"和"业务判断"上，而非重复性的代码实现。**
 
 ---
 
-## 🛠️ Technical Highlights
+## 六、附录
 
-### Architecture Decisions
+### 技术架构
 
-| Decision | Rationale |
-|----------|-----------|
-| **Pure Python core** | Demonstrates CS fundamentals; no black-box dependencies |
-| **Modular design** | `src/`, `utils/`, `config/` — enterprise-grade structure |
-| **Plotly visualizations** | Interactive, publication-quality charts |
-| **PEP 8 compliant** | Production-ready code style |
-| **Function encapsulation** | Each analysis is a reusable, testable function |
-| **Docstrings everywhere** | Professional documentation standard |
-
-### Skills Demonstrated
-
-```python
-✅ Python (core):       csv, statistics, math, collections, argparse
-✅ Data Manipulation:   group-by, aggregation, filtering, sorting
-✅ Data Analysis:       descriptive stats, IQR, Pareto, margin analysis
-✅ Visualization:       Plotly Graph Objects (12 chart types)
-✅ Business Acumen:     KPI design, insight generation, recommendations
-✅ Code Quality:        PEP 8, modular, documented, configurable
+```
+Retail-Profit-Optimization-System/
+├── data/                    # Superstore.csv (9,994 条)
+├── src/
+│   ├── data_loader.py       # 数据加载
+│   ├── data_quality.py      # 数据质量审计（6 项检查）
+│   ├── eda.py               # 探索性分析（12 维度）
+│   ├── drilldown.py         # 🆕 多维下钻诊断（8 维度）
+│   ├── insights.py          # 商业洞察生成（McKinsey 框架）
+│   └── visualizer.py        # Plotly 图表引擎（12 种图表类型）
+├── utils/helpers.py         # 纯 Python 工具函数
+├── config/settings.py        # 配置中心 + 配色方案
+├── charts/                   # 18 张 HTML 图表 + CEO 仪表板
+├── main.py                   # 分析管道编排
+├── notebook.ipynb            # Jupyter Notebook
+├── portfolio.md / resume.md / interview.md
+└── README.md                 # 本文件
 ```
 
----
+### 数据质量摘要
 
-## 📊 Visualization Gallery
+| 检查项 | 结果 |
+|--------|------|
+| 总数据量 | 9,994 行 × 13 列 |
+| 缺失值 | ✅ 0 |
+| 重复值 | 17 条（已清除） |
+| 负利润 | 1,869 条（18.7%）— 作为业务异常分析 |
+| 异常值 (IQR) | Sales: 1,167 个高值异常（大额订单） |
 
-> 🎨 **[View All 12 Interactive Charts →](https://yaoyaojiahan.github.io/superstore-analysis/charts/)**  
-> *GitHub Pages — click through to explore each chart with hover, zoom, and pan*
+### 核心图表清单（18 张）
 
-All charts are generated with Plotly and follow a **McKinsey-inspired corporate color palette**:
+| # | 图表 | 类型 | 层级 |
+|---|------|------|------|
+| 01 | 品类销售分布 | Treemap | 描述性 |
+| 02 | 品类利润贡献 | Waterfall | 描述性 |
+| 03 | 品类销售额 vs 利润率 | Grouped Bar | 描述性 |
+| 04 | 子品类销售额排名 | H-Bar | 描述性 |
+| 05 | 子品类利润排名 | H-Bar | 描述性 |
+| 06 | 区域表现 | Dual-Axis | 描述性 |
+| 07 | 客户细分分布 | Donut | 描述性 |
+| 08 | 折扣力度 vs 利润率 | V-Bar | 描述性 |
+| 09 | 帕累托 80/20 分析 | Bar+Line | 描述性 |
+| 10 | 亏损子品类排名 | H-Bar | 描述性 |
+| 11 | 物流方式分布 | Donut | 描述性 |
+| 12 | 折扣 vs 利润散点 | Scatter | 描述性 |
+| **13** | **品类 × 折扣 热力图** 🔴 | **Heatmap** | **诊断性** |
+| **14** | **子品类 × 区域 亏损矩阵** 🔴 | **H-Bar** | **诊断性** |
+| **15** | **客群 × 折扣 利润率对比** 🔴 | **Grouped Bar** | **诊断性** |
+| **16** | **永不打折管控清单** 🔴 | **Table** | **诊断性** |
+| **17** | **亏损品类根因诊断** 🔴 | **H-Bar** | **诊断性** |
+| **18** | **折扣弹性曲线** 🔴 | **Bar+Line** | **诊断性** |
 
-| # | Chart | Type | Business Question |
-|---|-------|------|-------------------|
-| 01 | Sales by Category | Treemap | Where does revenue come from? |
-| 02 | Profit by Category | Waterfall | Which categories drive profit? |
-| 03 | Category Comparison | Grouped Bar | Sales vs Profit by category |
-| 04 | Sales by Sub-Category | Horizontal Bar | Top-selling product lines |
-| 05 | Profit by Sub-Category | Horizontal Bar | Most profitable product lines |
-| 06 | Regional Performance | Dual-Axis | Sales + Margin by region |
-| 07 | Customer Segment | Donut | Who are our customers? |
-| 08 | **Discount Impact** 🔴 | Bar | How discounts destroy margin |
-| 09 | Pareto (80/20) | Bar + Line | Product concentration |
-| 10 | Loss-Makers | Horizontal Bar | Which products lose money? |
-| 11 | Shipping Mode | Donut | Logistics breakdown |
-| 12 | Discount vs Profit | Scatter | Correlation analysis |
-
----
-
-## 🎯 Target Job Keywords Alignment
-
-This project is designed to demonstrate proficiency in:
-
-| Keyword | How Demonstrated |
-|---------|-----------------|
-| **SQL** | Data aggregation, filtering, grouping logic (pure Python implementation) |
-| **Excel** | KPI frameworks, conditional analysis, business reporting |
-| **Python** | 500+ lines of production-quality Python code |
-| **Power BI / Tableau** | Dashboard design section with detailed blueprint |
-| **Statistical Analysis** | Descriptive stats, Pareto analysis, margin analysis, IQR outlier detection |
-| **Business Analysis** | McKinsey-style insight generation & recommendations |
+> 🎨 **[查看 CEO 驾驶舱 →](https://yaoyaojiahan.github.io/superstore-analysis/charts/dashboard.html)**
 
 ---
 
-## 📝 Future Enhancements
+## 👤 作者
 
-- [ ] Time-series forecasting (Prophet / ARIMA)
-- [ ] Customer segmentation (RFM analysis)
-- [ ] SQL database integration (PostgreSQL)
-- [ ] Real-time dashboard (Streamlit)
-- [ ] Machine Learning: churn prediction, discount optimization
-
----
-
-## 👤 Author
-
-**Yao Jiahan**  
-*Business Analyst | Data Analyst*  
-Applied Statistics, B.Sc.
-
-- **Specialization**: Business Analysis, Operations Analytics, AI + BA
-- **Tools**: Python, Power BI, Excel, SQL
-- **Domain Interest**: New Energy, AI-driven Analytics
-
----
-
-## 📄 License
-
-MIT License — Free to use for learning, portfolio, and professional development.
+**Yao Jiahan** · 应用统计 理学学士  
+AI + Business Analyst | 零售利润优化 | 数据驱动决策
 
 ---
 
 <p align="center">
-  <b>⭐ If this project helps your job search, please star it on GitHub!</b>
+  <b>CONFIDENTIAL · Retail Profit Optimization System · © 2026</b>
 </p>

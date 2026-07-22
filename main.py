@@ -1,15 +1,15 @@
 """
-main.py — Superstore Business Analysis Pipeline
-===============================================
-Master orchestrator that runs the complete analysis pipeline:
-1. Load Data → 2. Quality Check → 3. EDA → 4. Insights → 5. Visualizations
+main.py — Retail Profit Optimization System Pipeline
+=====================================================
+AI 驱动的零售利润优化决策系统。
+分析管道：加载 → 质量 → EDA → 洞察 → 下钻诊断 → 可视化
 
 Usage:
-    python main.py              # Run full pipeline
-    python main.py --export     # Also export charts as HTML
+    python main.py              # Run full pipeline (20 analysis dimensions)
+    python main.py --export     # Also export 18 charts as HTML
 
 Author: Yao Jiahan
-Date: 2026-07-21
+Date: 2026-07-22
 """
 
 import os
@@ -25,6 +25,7 @@ from src.data_loader import SuperstoreData
 from src.data_quality import DataQualityReport
 from src.eda import EDAAnalyzer
 from src.insights import BusinessInsights
+from src.drilldown import run_all_drilldowns
 from src.visualizer import (
     create_hbar, create_vbar, create_donut, create_treemap,
     create_pareto, create_scatter, create_grouped_bar,
@@ -97,12 +98,18 @@ def run_pipeline(export: bool = False):
     all_insights = insights.generate_all()
     insights.print_summary()
 
-    # ── Step 5: Generate Visualizations ────────────────────────────────
+    # ── Step 5: Multi-Dimensional Drill-Down ─────────────────────────────
     print("\n" + "─" * 70)
-    print("  STEP 5: GENERATING VISUALIZATIONS")
+    print("  STEP 5: MULTI-DIMENSIONAL DRILL-DOWN (CEO Diagnostic)")
+    print("─" * 70)
+    drilldown_results = run_all_drilldowns(data)
+
+    # ── Step 6: Generate Visualizations ────────────────────────────────
+    print("\n" + "─" * 70)
+    print("  STEP 6: GENERATING VISUALIZATIONS")
     print("─" * 70)
 
-    charts = generate_all_charts(eda_results, data)
+    charts = generate_all_charts(eda_results, drilldown_results, data)
 
     if export:
         for name, fig in charts.items():
@@ -119,6 +126,7 @@ def run_pipeline(export: bool = False):
     print(f"  Total Orders:   {so.get('total_orders', 0):,}")
     print(f"  Insights:       {len(all_insights)}")
     print(f"  Charts:         {len(charts)}")
+    print(f"  Drill-Downs:    8 dimensions")
     print("█" * 70 + "\n")
 
     return {
@@ -126,11 +134,12 @@ def run_pipeline(export: bool = False):
         'quality': quality_report,
         'eda': eda_results,
         'insights': all_insights,
+        'drilldown': drilldown_results,
         'charts': charts,
     }
 
 
-def generate_all_charts(eda: dict, data) -> dict:
+def generate_all_charts(eda: dict, drill: dict, data) -> dict:
     """Generate all Plotly charts for the analysis."""
     charts = {}
     so = eda.get('sales_overview', {})
@@ -286,7 +295,147 @@ def generate_all_charts(eda: dict, data) -> dict:
         color_label='Discount',
         size_values=[max(3, min(20, abs(p) / 50)) for p in p_sample],
     )
-
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # 下钻分析图表 (13-18)
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # 13. 品类 × 折扣 利润热力图
+    cat_disc = drill.get('category_discount', {})
+    if cat_disc.get('raw_matrix'):
+        cats = cat_disc['categories']
+        bins = cat_disc['bins']
+        headers = ['品类\\折扣段'] + bins
+        cells = []
+        for cat in cats:
+            row = [cat]
+            for b in bins:
+                key = (cat, b)
+                val = cat_disc['raw_matrix'].get(key, {})
+                margin = val.get('margin', 0)
+                row.append(f"{margin}%")
+            cells.append(row)
+        # 转置为 plotly table 格式
+        table_cells = [headers]
+        for i in range(len(bins) + 1):
+            col = [cells[j][i] for j in range(len(cats))]
+            table_cells.append(col)
+        
+        # 用数值矩阵做热力表格
+        matrix_values = []
+        for cat in cats:
+            row_vals = []
+            for b in bins:
+                key = (cat, b)
+                val = cat_disc['raw_matrix'].get(key, {})
+                row_vals.append(val.get('margin', 0))
+            matrix_values.append(row_vals)
+        
+        charts['13_category_discount_heatmap'] = create_heatmap_table(
+            headers=['品类'] + bins,
+            cells=[
+                [cats[i] for i in range(len(cats))],  # col 0: 品类名
+                *[[matrix_values[i][j] for i in range(len(cats))] for j in range(len(bins))]
+            ],
+            title='品类 × 折扣段 利润率矩阵 (%)'
+        )
+    
+    # 14. 子品类 × 区域 亏损 Top 10
+    sub_region = drill.get('subcategory_region', {})
+    worst_combo = sub_region.get('worst_combinations', [])
+    if worst_combo:
+        labels_14 = [f"{w['sub_category']} · {w['region']}" for w in worst_combo]
+        values_14 = [abs(w['profit']) for w in worst_combo]
+        charts['14_subcategory_region_loss'] = create_hbar(
+            labels=labels_14,
+            values=values_14,
+            title='子品类 × 区域 亏损 Top 10（问题定位）',
+            xaxis_title='亏损金额 ($)',
+            color=COLORS['danger']
+        )
+    
+    # 15. 客群 × 折扣 利润对比
+    seg_disc = drill.get('segment_discount', {})
+    if seg_disc.get('raw_matrix'):
+        segments = seg_disc['segments']
+        disc_bins = seg_disc['bins']
+        series = {}
+        for seg in segments:
+            margins = []
+            for b in disc_bins:
+                k = seg + '|' + b
+                margins.append(seg_disc['raw_matrix'].get(k, {}).get('margin', 0))
+            series[seg] = margins
+        charts['15_segment_discount'] = create_grouped_bar(
+            categories=disc_bins,
+            series=series,
+            title='客群 × 折扣段 利润率对比',
+            yaxis_title='利润率 (%)'
+        )
+    
+    # 16. 永不打折清单
+    never = drill.get('subcategory_discount', {}).get('never_discount', [])
+    if never:
+        table_headers = ['子品类', '严重度', '折扣段', '利润率', '交易数']
+        table_rows = [[], [], [], [], []]
+        for item in never:
+            for alert in item['alerts']:
+                table_rows[0].append(item['sub_category'])
+                table_rows[1].append(item['severity'])
+                table_rows[2].append(alert['discount_bin'])
+                table_rows[3].append(f"{alert['margin']}%")
+                table_rows[4].append(str(alert['count']))
+        charts['16_never_discount'] = create_heatmap_table(
+            headers=table_headers,
+            cells=table_rows,
+            title='⚠️ 建议永不打折 / 严格管控清单'
+        )
+    
+    # 17. 亏损品诊断面板
+    diag = drill.get('loss_maker_diagnostics', {}).get('diagnostics', {})
+    if diag:
+        sub_names = list(diag.keys())
+        loss_values = [abs(diag[s]['total_loss']) for s in sub_names]
+        charts['17_loss_diagnostics'] = create_hbar(
+            labels=sub_names,
+            values=loss_values,
+            title='Top 5 亏损品类诊断（点击下钻查看根因）',
+            xaxis_title='亏损金额 ($)',
+            color=COLORS['danger']
+        )
+    
+    # 18. 折扣弹性曲线
+    elas = drill.get('discount_elasticity', {}).get('data', [])
+    if elas:
+        disc_pcts = [e['discount_pct'] for e in elas]
+        margins = [e['margin'] for e in elas]
+        counts = [e['count'] for e in elas]
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+        from src.visualizer import apply_template
+        
+        fig18 = make_subplots(specs=[[{'secondary_y': True}]])
+        fig18.add_trace(go.Bar(
+            x=disc_pcts, y=counts, name='订单量',
+            marker_color=COLORS['secondary'], opacity=0.6
+        ), secondary_y=False)
+        fig18.add_trace(go.Scatter(
+            x=disc_pcts, y=margins, name='利润率 %',
+            mode='lines+markers', line={'color': COLORS['danger'], 'width': 3},
+            marker={'size': 8}
+        ), secondary_y=True)
+        fig18.add_hline(y=0, line_dash='dash', line_color=COLORS['neutral'],
+                        annotation_text='盈亏平衡线', secondary_y=True)
+        fig18.update_layout(
+            title={'text': '折扣弹性分析：利润率 vs 订单量', 'x': 0, 'font': {'size': 18, 'color': COLORS['primary']}},
+            height=450, showlegend=True,
+            legend={'orientation': 'h', 'y': 1.05}
+        )
+        fig18.update_xaxes(title_text='折扣率 (%)')
+        fig18.update_yaxes(title_text='订单量', secondary_y=False)
+        fig18.update_yaxes(title_text='利润率 (%)', secondary_y=True)
+        charts['18_discount_elasticity'] = apply_template(fig18)
+    
     print(f"  ✓ Generated {len(charts)} charts")
     return charts
 
