@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+  #chart { width: 100vw; height: 100vh; }
+</style></head><body>
+<div id="chart"></div>
+<script>
+  var data = [{"hovertemplate": "%{y}: %{x:$,.2f}<extra></extra>", "marker": {"color": ["#003366", "#0066CC", "#00A86B", "#FF6B35", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B", "#6366F1", "#EF4444", "#06B6D4", "#84CC16", "#003366", "#0066CC", "#00A86B", "#FF6B35", "#8B5CF6"], "line": {"width": 0}}, "orientation": "h", "text": ["$330,007", "$328,449", "$223,844", "$206,966", "$203,413", "$189,239", "$167,380", "$149,528", "$114,880", "$107,532", "$91,705", "$78,479", "$46,674", "$27,119", "$16,476", "$12,486", "$3,024"], "textfont": {"color": "#212529", "size": 11}, "textposition": "outside", "x": [330007.0540000001, 328449.10300000076, 223843.60800000012, 206965.5320000001, 203412.7330000001, 189238.63099999996, 167380.3180000001, 149528.02999999994, 114879.99629999997, 107532.161, 91705.16400000005, 78479.20600000002, 46673.538000000015, 27118.791999999954, 16476.402, 12486.312, 3024.2799999999997], "y": ["Phones", "Chairs", "Storage", "Tables", "Binders", "Machines", "Accessories", "Copiers", "Bookcases", "Appliances", "Furnishings", "Paper", "Supplies", "Art", "Envelopes", "Labels", "Fasteners"], "type": "bar"}];
+  var layout = {"title": {"text": "Sales by Sub-Category", "x": 0, "font": {"size": 18, "color": "#003366"}}, "yaxis": {"autorange": "reversed", "title": {"font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "xaxis": {"title": {"text": "Total Sales ($)", "font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "height": 595, "showlegend": false, "font": {"family": "Segoe UI, Arial, sans-serif", "color": "#212529"}, "margin": {"l": 60, "r": 30, "t": 60, "b": 50}, "legend": {"font": {"color": "#6C757D"}}, "hoverlabel": {"font": {"family": "Segoe UI, Arial, sans-serif"}}, "plot_bgcolor": "#FFFFFF", "paper_bgcolor": "#FFFFFF"};
+  Plotly.newPlot('chart', data, layout, {{responsive: true}});
+</script></body></html>
