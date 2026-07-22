@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+  #chart { width: 100vw; height: 100vh; }
+</style></head><body>
+<div id="chart"></div>
+<script>
+  var data = [{"connector": {"line": {"color": "#6C757D", "dash": "dot", "width": 1}}, "decreasing": {"marker": {"color": "#DC3545"}}, "increasing": {"marker": {"color": "#00A86B"}}, "name": "Profit", "orientation": "v", "text": ["$18,451", "$122,491", "$145,455"], "textposition": "outside", "x": ["Furniture", "Office Supplies", "Technology"], "y": [18451.2728, 122490.80080000011, 145454.9480999999], "type": "waterfall"}];
+  var layout = {"title": {"text": "Profit Contribution by Category", "x": 0, "font": {"size": 18, "color": "#003366"}}, "yaxis": {"title": {"text": "Profit ($)", "font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "height": 450, "showlegend": false, "font": {"family": "Segoe UI, Arial, sans-serif", "color": "#212529"}, "margin": {"l": 60, "r": 30, "t": 60, "b": 50}, "xaxis": {"title": {"font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "legend": {"font": {"color": "#6C757D"}}, "hoverlabel": {"font": {"family": "Segoe UI, Arial, sans-serif"}}, "plot_bgcolor": "#FFFFFF", "paper_bgcolor": "#FFFFFF"};
+  Plotly.newPlot('chart', data, layout, {{responsive: true}});
+</script></body></html>
