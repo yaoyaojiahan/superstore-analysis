@@ -1,0 +1,5 @@
+# Superstore Business Analysis — Python Dependencies
+# Python 3.10+ recommended (Pure Python core, Plotly for visualization)
+
+plotly>=5.0.0
+kaleido>=1.0.0
