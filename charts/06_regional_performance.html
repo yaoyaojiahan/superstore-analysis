@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+  #chart { width: 100vw; height: 100vh; }
+</style></head><body>
+<div id="chart"></div>
+<script>
+  var data = [{"marker": {"color": "#0066CC", "opacity": 0.8}, "name": "Sales", "text": ["$391,722", "$725,458", "$501,240", "$678,781"], "textfont": {"size": 11}, "textposition": "outside", "x": ["South", "West", "Central", "East"], "y": [391721.9050000003, 725457.8245000006, 501239.8908000005, 678781.2399999979], "type": "bar", "xaxis": "x", "yaxis": "y"}, {"line": {"color": "#00A86B", "width": 3}, "marker": {"color": ["#00A86B", "#00A86B", "#00A86B", "#00A86B"], "size": 10}, "mode": "lines+markers", "name": "Profit Margin %", "text": ["11.9%", "14.9%", "7.9%", "13.5%"], "textposition": "top center", "x": ["South", "West", "Central", "East"], "y": [11.9, 14.9, 7.9, 13.5], "type": "scatter", "xaxis": "x", "yaxis": "y2"}];
+  var layout = {"xaxis": {"anchor": "y", "domain": [0.0, 0.94], "title": {"font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "yaxis": {"anchor": "x", "domain": [0.0, 1.0], "title": {"text": "Sales ($)", "font": {"color": "#6C757D"}}, "gridcolor": "#E5E7EB", "linecolor": "#D1D5DB"}, "yaxis2": {"anchor": "x", "overlaying": "y", "side": "right", "title": {"text": "Profit Margin (%)"}}, "title": {"text": "Regional Performance: Sales & Profit Margin", "x": 0, "font": {"size": 18, "color": "#003366"}}, "legend": {"orientation": "h", "y": 1.05, "font": {"color": "#6C757D"}}, "height": 450, "font": {"family": "Segoe UI, Arial, sans-serif", "color": "#212529"}, "margin": {"l": 60, "r": 30, "t": 60, "b": 50}, "hoverlabel": {"font": {"family": "Segoe UI, Arial, sans-serif"}}, "plot_bgcolor": "#FFFFFF", "paper_bgcolor": "#FFFFFF"};
+  Plotly.newPlot('chart', data, layout, {{responsive: true}});
+</script></body></html>
