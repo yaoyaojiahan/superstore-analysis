@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零售利润优化决策系统 · CEO 驾驶舱</title>
+<style>
+/* ===== Reset & Variables ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary:    #003366;
+  --secondary:  #0066CC;
+  --accent:     #00A86B;
+  --danger:     #DC3545;
+  --warning:    #FFC107;
+  --neutral:    #6C757D;
+  --light:      #F8F9FA;
+  --dark:       #212529;
+  --white:      #FFFFFF;
+  --border:     #E5E7EB;
+  --sidebar-w:  210px;
+  --header-h:   52px;
+  --font:       'Segoe UI', 'Microsoft YaHei', 'PingFang SC', -apple-system, Arial, sans-serif;
+}
+body {
+  font-family: var(--font);
+  background: #EDF0F4;
+  color: var(--dark);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: #001a30;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 22px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-logo .logo-dot { font-size: 1.3rem; }
+.sidebar-logo h2 { font-size: 0.9rem; font-weight: 700; line-height: 1.4; margin-top:2px; }
+.sidebar-logo span { font-size: 0.65rem; opacity: 0.4; font-weight: 400; }
+.sidebar-nav { flex: 1; padding: 6px 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 18px; cursor: pointer;
+  font-size: 0.82rem; color: rgba(255,255,255,0.55);
+  transition: all 0.2s; border-left: 3px solid transparent;
+  margin: 1px 0;
+}
+.nav-item:hover { color: white; background: rgba(255,255,255,0.04); }
+.nav-item.active {
+  color: white; background: rgba(255,255,255,0.08);
+  border-left-color: var(--accent); font-weight: 600;
+}
+.nav-icon { font-size: 1rem; width: 22px; text-align: center; }
+.sidebar-footer {
+  padding: 12px 18px; border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.64rem; color: rgba(255,255,255,0.3); line-height: 1.5;
+}
+
+/* ===== Main ===== */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1; display: flex; flex-direction: column; min-width: 0;
+}
+.header-bar {
+  height: var(--header-h);
+  background: white; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px;
+  font-size: 0.8rem; color: var(--neutral); gap: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03); position: sticky; top: 0; z-index: 50;
+}
+.header-bar .page-title { font-weight: 700; color: var(--dark); font-size: 0.95rem; }
+.header-bar .badge {
+  background: var(--light); padding: 4px 10px;
+  border-radius: 10px; font-size: 0.7rem; color: var(--neutral);
+}
+.header-bar .badge.urgent { background: #FEE2E2; color: var(--danger); font-weight: 600; }
+.spacer { flex: 1; }
+.content { flex: 1; padding: 20px 24px 24px; overflow-y: auto; }
+
+/* ===== Tabs ===== */
+.tab-content { display: none; animation: fadeIn 0.3s; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== KPI Cards ===== */
+.kpi-row {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  gap: 12px; margin-bottom: 18px;
+}
+.kpi-card {
+  background: white; border-radius: 8px; padding: 16px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04); border-left: 3px solid var(--secondary);
+  transition: all 0.2s; cursor: default;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.kpi-card.good  { border-left-color: var(--accent); }
+.kpi-card.warn  { border-left-color: var(--warning); }
+.kpi-card.danger{ border-left-color: var(--danger); }
+.kpi-label { font-size: 0.66rem; color: var(--neutral); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+.kpi-value { font-size: 1.5rem; font-weight: 800; color: var(--dark); line-height: 1.2; }
+.kpi-unit  { font-size: 0.72rem; font-weight: 400; color: var(--neutral); }
+.kpi-sub   { font-size: 0.64rem; color: var(--neutral); margin-top: 2px; }
+
+/* ===== Alert Banner ===== */
+.alert-banner {
+  background: linear-gradient(135deg, #FFF5F5 0%, #FFF0F0 100%);
+  border: 1px solid #FECACA; border-left: 4px solid var(--danger);
+  border-radius: 8px; padding: 14px 18px; margin-bottom: 18px;
+  font-size: 0.82rem; display: flex; align-items: center; gap: 12px;
+}
+.alert-banner .alert-icon { font-size: 1.5rem; }
+.alert-banner strong { color: var(--danger); }
+.alert-banner.green { background: linear-gradient(135deg, #F0FAF4 0%, #E8F5EC 100%); border-color: #A7F3D0; border-left-color: var(--accent); }
+.alert-banner.green strong { color: var(--accent); }
+
+/* ===== Section Title ===== */
+.section-title {
+  font-size: 0.82rem; font-weight: 700; color: var(--primary);
+  margin-bottom: 12px; padding: 4px 0 4px 12px;
+  border-left: 3px solid var(--accent);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* ===== Chart Grid ===== */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-grid.single { grid-template-columns: 1fr; }
+.chart-card {
+  background: white; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.chart-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.chart-card-header {
+  padding: 10px 16px; font-weight: 600; font-size: 0.74rem;
+  color: var(--primary); border-bottom: 1px solid var(--border);
+  background: #FAFBFC; display: flex; align-items: center; gap: 7px;
+}
+.chart-card-header .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.chart-card-header .tag {
+  font-size: 0.6rem; padding: 2px 7px; border-radius: 6px;
+  font-weight: 700; margin-left: auto;
+}
+.chart-card-header .tag.red { background: #FEE2E2; color: var(--danger); }
+.chart-card-header .tag.green { background: #D1FAE5; color: var(--accent); }
+.chart-card-body { height: 380px; }
+.chart-card-body iframe { width: 100%; height: 100%; border: none; }
+.chart-card-body.tall { height: 450px; }
+
+/* ===== Action Cards (Page 3) ===== */
+.action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+.action-card {
+  background: white; border-radius: 8px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border-top: 3px solid var(--primary); transition: all 0.2s;
+}
+.action-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.action-card.c1 { border-top-color: var(--danger); }
+.action-card.c2 { border-top-color: var(--warning); }
+.action-card.c3 { border-top-color: var(--accent); }
+.action-card .action-num { font-size: 1.8rem; font-weight: 800; color: var(--light); line-height: 1; }
+.action-card h4 { font-size: 0.88rem; margin: 6px 0; color: var(--dark); }
+.action-card .impact { font-size: 0.76rem; color: var(--neutral); margin: 8px 0; }
+.action-card .impact strong { color: var(--accent); }
+.action-card .impact strong.neg { color: var(--danger); }
+.action-card ul { font-size: 0.74rem; color: var(--neutral); padding-left: 16px; line-height: 1.6; }
+
+/* ===== ROI Simulator ===== */
+.roi-box {
+  background: linear-gradient(135deg, #003366 0%, #002244 100%);
+  border-radius: 10px; padding: 20px 24px; color: white;
+  display: flex; align-items: center; gap: 30px; margin-bottom: 18px;
+}
+.roi-box .roi-big { font-size: 2.4rem; font-weight: 800; }
+.roi-box .roi-label { font-size: 0.78rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+.roi-box .roi-arrow { font-size: 1.5rem; opacity: 0.5; }
+
+/* ===== Timeline ===== */
+.timeline { display: flex; gap: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.timeline-phase { flex: 1; padding: 16px; text-align: center; border-right: 1px solid var(--border); }
+.timeline-phase:last-child { border-right: none; }
+.timeline-phase h5 { font-size: 0.72rem; color: var(--neutral); text-transform: uppercase; letter-spacing: 0.5px; }
+.timeline-phase .phase-quarter { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 4px 0; }
+.timeline-phase p { font-size: 0.68rem; color: var(--neutral); line-height: 1.4; }
+
+/* ===== Summary Table ===== */
+.summary-table {
+  background: white; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid var(--border);
+}
+.summary-table table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.summary-table thead th {
+  background: var(--primary); color: white; padding: 10px 16px;
+  text-align: left; font-weight: 600; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.summary-table tbody td { padding: 9px 16px; border-bottom: 1px solid var(--border); }
+.summary-table tbody tr:last-child td { border-bottom: none; }
+.num-neg { color: var(--danger); font-weight: 700; }
+.num-pos { color: var(--accent); font-weight: 700; }
+
+/* ===== Footer ===== */
+.dashboard-footer {
+  text-align: center; padding: 18px; color: var(--neutral);
+  font-size: 0.68rem; border-top: 1px solid var(--border); margin-top: 8px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1400px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } .action-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1100px) { .chart-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  .sidebar { width: 50px; overflow: hidden; }
+  .sidebar-logo h2, .sidebar-logo span, .nav-item span:not(.nav-icon), .sidebar-footer { display: none; }
+  .nav-item { justify-content: center; padding: 12px 0; }
+  .main { margin-left: 50px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .action-grid { grid-template-columns: 1fr; }
+  .content { padding: 12px 12px 16px; }
+  .roi-box { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 侧边栏 ===== -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-dot">🏦</div>
+    <h2>零售利润<br>优化系统</h2>
+    <span>Retail Profit Optimization</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-tab="tab-health">
+      <span class="nav-icon">📊</span><span>经营健康检查</span>
+    </div>
+    <div class="nav-item" data-tab="tab-diagnosis">
+      <span class="nav-icon">🔬</span><span>根因诊断</span>
+    </div>
+    <div class="nav-item" data-tab="tab-action">
+      <span class="nav-icon">🎯</span><span>行动方案</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    CONFIDENTIAL<br>Yao Jiahan · 2026
+  </div>
+</aside>
+
+<!-- ===== 主内容区 ===== -->
+<main class="main">
+  <div class="header-bar">
+    <span class="page-title" id="pageTitle">📊 经营健康检查</span>
+    <span class="spacer"></span>
+    <span class="badge">数据: Superstore 9,994 条</span>
+    <span class="badge urgent">⚠ 利润泄漏 $156K</span>
+    <span class="badge">2026-07-22</span>
+  </div>
+
+  <div class="content">
+
+    <!-- ========== TAB 1: 经营健康检查 ========== -->
+    <div class="tab-content active" id="tab-health">
+
+      <!-- CEO Alert -->
+      <div class="alert-banner">
+        <span class="alert-icon">🔴</span>
+        <div>
+          <strong>核心发现：$156,131 利润泄漏</strong> — 相当于总利润的 54%。根因是高折扣（>40%）策略失控，导致 18.7% 订单亏损。执行 3 项干预措施可在 6 个月内挽回 <strong>$46,000+</strong> 净利润。
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">💰 总营收</div>
+          <div class="kpi-value">$2.30<span class="kpi-unit">M</span></div>
+          <div class="kpi-sub">9,994 笔交易</div>
+        </div>
+        <div class="kpi-card good">
+          <div class="kpi-label">📈 净利润</div>
+          <div class="kpi-value">$286<span class="kpi-unit">K</span></div>
+          <div class="kpi-sub">→ 可达 $332K</div>
+        </div>
+        <div class="kpi-card good">
+          <div class="kpi-label">📊 净利率</div>
+          <div class="kpi-value">12.5<span class="kpi-unit">%</span></div>
+          <div class="kpi-sub">目标 ≥ 14%</div>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">💸 利润泄漏</div>
+          <div class="kpi-value" style="color:#DC3545;">$156<span class="kpi-unit" style="color:#DC3545;">K</span></div>
+          <div class="kpi-sub">占利润比 54%</div>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">⚠️ 亏损率</div>
+          <div class="kpi-value" style="color:#DC3545;">18.7<span class="kpi-unit" style="color:#DC3545;">%</span></div>
+          <div class="kpi-sub">1,869 笔交易</div>
+        </div>
+        <div class="kpi-card warn">
+          <div class="kpi-label">🎯 干预潜力</div>
+          <div class="kpi-value" style="color:var(--accent);">+$46<span class="kpi-unit" style="color:var(--accent);">K</span></div>
+          <div class="kpi-sub">挽回 30% 亏损</div>
+        </div>
+      </div>
+
+      <!-- Key charts: T1 -->
+      <div class="section-title">📈 收入结构与利润泄漏</div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--accent);"></span>品类销售分布 · 树状图</div>
+          <div class="chart-card-body"><iframe src="01_sales_treemap.html"></iframe></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--danger);"></span>品类×折扣 亏损热力图 <span class="tag red">核心发现</span></div>
+          <div class="chart-card-body"><iframe src="13_category_discount_heatmap.html"></iframe></div>
+        </div>
+      </div>
+
+      <!-- TOP 3 Opportunities -->
+      <div class="section-title" style="margin-top:18px;">🎯 TOP 3 干预机会</div>
+      <div class="action-grid">
+        <div class="action-card c1">
+          <div class="action-num">01</div>
+          <h4>折扣上限管控</h4>
+          <div class="impact">预计挽回：<strong class="neg">+$46,000</strong> / 年</div>
+          <ul>
+            <li>家具类折扣上限 25%</li>
+            <li>>40% 折扣需经理审批</li>
+            <li>高风险：Binders, Tables</li>
+          </ul>
+        </div>
+        <div class="action-card c2">
+          <div class="action-num">02</div>
+          <h4>亏损品类供应商议价</h4>
+          <div class="impact">预计挽回：<strong class="neg">+$28,000</strong> / 年</div>
+          <ul>
+            <li>Top 5 亏损品 COGS 审查</li>
+            <li>Tables/Binders/Machines</li>
+            <li>捆绑高利润配件销售</li>
+          </ul>
+        </div>
+        <div class="action-card c3">
+          <div class="action-num">03</div>
+          <h4>区域差异化策略</h4>
+          <div class="impact">预计挽回：<strong class="neg">+$18,000</strong> / 年</div>
+          <ul>
+            <li>Central 区域专项诊断</li>
+            <li>West 优势市场加大投入</li>
+            <li>物流成本区域优化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TAB 2: 根因诊断 ========== -->
+    <div class="tab-content" id="tab-diagnosis">
+
+      <div class="section-title">🔬 多维下钻：亏损到底从哪里来？</div>
+
+      <!-- Row 1 -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--danger);"></span>子品类×区域 亏损 Top 10（精准定位）<span class="tag red">NEW</span></div>
+          <div class="chart-card-body"><iframe src="14_subcategory_region_loss.html"></iframe></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--warning);"></span>客群×折扣段 利润率对比<span class="tag red">NEW</span></div>
+          <div class="chart-card-body"><iframe src="15_segment_discount.html"></iframe></div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="chart-grid" style="margin-top:16px;">
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--danger);"></span>亏损品类根因诊断<span class="tag red">NEW</span></div>
+          <div class="chart-card-body"><iframe src="17_loss_diagnostics.html"></iframe></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--secondary);"></span>折扣弹性：利润率 vs 订单量<span class="tag red">NEW</span></div>
+          <div class="chart-card-body"><iframe src="18_discount_elasticity.html"></iframe></div>
+        </div>
+      </div>
+
+      <!-- Row 3: Classic charts for context -->
+      <div class="section-title" style="margin-top:18px;">📊 辅助分析：折扣影响与亏损面</div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--danger);"></span>折扣力度 vs 利润率 · 柱状图</div>
+          <div class="chart-card-body"><iframe src="08_discount_impact.html"></iframe></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="dot" style="background:var(--danger);"></span>亏损子品类排名</div>
+          <div class="chart-card-body"><iframe src="10_loss_makers.html"></iframe></div>
+        </div>
+      </div>
+
+      <!-- 永不打折清单 -->
+      <div class="section-title" style="margin-top:18px;">🚫 建议永不打折 / 严格管控清单</div>
+      <div class="chart-card">
+        <div class="chart-card-header"><span class="dot" style="background:var(--danger);"></span>⚠️ 这些产品在中高折扣段 100% 亏损<span class="tag red">NEW</span></div>
+        <div class="chart-card-body tall"><iframe src="16_never_discount.html"></iframe></div>
+      </div>
+    </div>
+
+    <!-- ========== TAB 3: 行动方案 ========== -->
+    <div class="tab-content" id="tab-action">
+
+      <!-- ROI Simulator -->
+      <div class="roi-box">
+        <div>
+          <div class="roi-label">当前年利润</div>
+          <div class="roi-big">$286K</div>
+        </div>
+        <div class="roi-arrow">→</div>
+        <div>
+          <div class="roi-label">执行 3 项措施后</div>
+          <div class="roi-big" style="color:var(--accent);">$332K</div>
+          <div style="font-size:0.82rem;opacity:0.7;">+16% 净利润提升</div>
+        </div>
+        <div class="roi-arrow">→</div>
+        <div>
+          <div class="roi-label">停止50%亏损可达</div>
+          <div class="roi-big" style="color:var(--accent);">$364K</div>
+          <div style="font-size:0.82rem;opacity:0.7;">+27% 净利润提升</div>
+        </div>
+      </div>
+
+      <!-- 3 Strategies -->
+      <div class="section-title">🎯 三大战略举措</div>
+      <div class="action-grid">
+        <div class="action-card c1">
+          <div class="action-num" style="color:#FEE2E2;">01</div>
+          <h4>🛑 折扣止血计划</h4>
+          <div class="impact">预期影响：<strong class="neg">+$46,000</strong></div>
+          <ul>
+            <li>家具品类折扣硬上限 25%</li>
+            <li>所有品类 >40% 折扣需总监审批</li>
+            <li>8 个子品类列为"永不打折"清单</li>
+            <li>实施 A/B 测试验证最优折扣点</li>
+            <li>月度折扣-利润 KPI 追踪</li>
+          </ul>
+        </div>
+        <div class="action-card c2">
+          <div class="action-num" style="color:#FFF8E1;">02</div>
+          <h4>📦 产品组合优化</h4>
+          <div class="impact">预期影响：<strong class="neg">+$28,000</strong></div>
+          <ul>
+            <li>Binders/Tables/Machines 供应商重新议价</li>
+            <li>亏损品与高利润品捆绑销售</li>
+            <li>设置最低起订量改善单位经济模型</li>
+            <li>Technology 品类加大营销投入</li>
+            <li>季度产品利润评估 + 末位淘汰</li>
+          </ul>
+        </div>
+        <div class="action-card c3">
+          <div class="action-num" style="color:#D1FAE5;">03</div>
+          <h4>🗺️ 区域差异化运营</h4>
+          <div class="impact">预期影响：<strong class="neg">+$18,000</strong></div>
+          <ul>
+            <li>Central 区域专项诊断（折扣/物流/竞争）</li>
+            <li>West 区域：追加营销投入 20%</li>
+            <li>区域化定价策略试点</li>
+            <li>物流成本区域分摊优化</li>
+            <li>区域利润 KPI 纳入考核</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Implementation Timeline -->
+      <div class="section-title">📅 实施路线图</div>
+      <div class="timeline">
+        <div class="timeline-phase">
+          <h5>Phase 1</h5>
+          <div class="phase-quarter">Q1</div>
+          <p>折扣止血<br>立即执行<br>快速见效</p>
+        </div>
+        <div class="timeline-phase">
+          <h5>Phase 2</h5>
+          <div class="phase-quarter">Q2</div>
+          <p>供应商议价<br>产品组合<br>A/B 测试</p>
+        </div>
+        <div class="timeline-phase">
+          <h5>Phase 3</h5>
+          <div class="phase-quarter">Q3</div>
+          <p>区域策略<br>定价优化<br>效果复盘</p>
+        </div>
+        <div class="timeline-phase">
+          <h5>Phase 4</h5>
+          <div class="phase-quarter">Q4</div>
+          <p>全面推广<br>自动化预警<br>持续优化</p>
+        </div>
+      </div>
+
+      <!-- Appendix -->
+      <div class="section-title" style="margin-top:20px;">📋 附录：数据质量与方法论</div>
+      <div class="chart-grid">
+        <div class="summary-table">
+          <table>
+            <thead><tr><th>方法论</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>分析框架</td><td>描述性 → 诊断性 → 规范性 三级分析</td></tr>
+              <tr><td>洞察框架</td><td>McKinsey Insight → So What → Now What</td></tr>
+              <tr><td>统计方法</td><td>IQR 异常检测 · 帕累托 80/20 · 多维交叉聚合</td></tr>
+              <tr><td>AI 工作流</td><td>Prompt → AI分析设计 → Python执行 → 人工校验 → BI呈现</td></tr>
+              <tr><td>工具链</td><td>Python · Plotly · Power BI 设计</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="summary-table">
+          <table>
+            <thead><tr><th>数据质量</th><th>结果</th></tr></thead>
+            <tbody>
+              <tr><td>数据量</td><td>9,994 行 × 13 列</td></tr>
+              <tr><td>缺失值</td><td class="num-pos">✅ 0</td></tr>
+              <tr><td>重复值</td><td>17 条（已清除）</td></tr>
+              <tr><td>负利润</td><td class="num-neg">1,869 条 (18.7%) — 业务异常</td></tr>
+              <tr><td>分析维度</td><td>12 EDA + 8 下钻 = 20 维度</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-footer">
+      CONFIDENTIAL · 零售利润优化决策系统 · Yao Jiahan · AI + Business Analyst · 2026
+    </div>
+  </div>
+</main>
+
+<!-- ===== Tab Switching ===== -->
+<script>
+const pageTitles = {
+  'tab-health':    '📊 经营健康检查',
+  'tab-diagnosis': '🔬 根因诊断',
+  'tab-action':    '🎯 行动方案',
+};
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    const tabId = item.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.getElementById('pageTitle').textContent = pageTitles[tabId] || '';
+  });
+});
+</script>
+
+</body>
+</html>
